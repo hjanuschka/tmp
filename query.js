@@ -4,9 +4,9 @@ var prediction = require('@google-cloud/prediction')({
   keyFilename: '/Users/hja/Desktop/SPORTPORTAL/prediction/../FXF/FXF-REST/DEPLOYD/FiveXFive/conf/google-key.json'
 });
 
-var model = prediction.model('kmm-sentiment2');
+var model = prediction.model('kmm-sentiment3');
 
-var query_things = 'die siegreichen drei, die herzlichsten gratulationen.'.split(/\s/gi)
+var query_things = 'scheisse arschloch das is grün'.split(/\s/gi)
 model.query(query_things, function(e, d) {
   console.error(e, d);
 })

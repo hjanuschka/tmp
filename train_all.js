@@ -5,13 +5,22 @@ var prediction = require('@google-cloud/prediction')({
 });
 
 
+//prediction.createModel('kmm-sentiment3', function(err, model, apiResponse) {
+//});
+
 var fs = require("fs");
-var records = fs.readFileSync(process.argv[2]).toString()
-var model = prediction.model('kmm-sentiment2');
-console.log(records.split(/\s/gi))
-model.train(process.argv[3], records.split(/\s/gi)).then(function(e,d) {
-  console.error(e,d)
-})
+var records = fs.readFileSync(process.argv[2]).toString().split("\n")
+
+var model = prediction.model('kmm-sentiment3');
+
+records.reduce(function(promise, item) {
+    return promise.then(function() {
+        console.error("TRAINING!")
+        return model.train(process.argv[3], item.split(/\s/gi))
+    });
+}, Promise.resolve());
+
+
 
 
 
