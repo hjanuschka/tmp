@@ -12,7 +12,6 @@ var fs = require("fs");
 var records = fs.readFileSync(process.argv[2]).toString().split("\n")
 
 var model = prediction.model('kmm-sentiment3');
-
 records.reduce(function(promise, item) {
     return promise.then(function() {
         console.error("TRAINING!")

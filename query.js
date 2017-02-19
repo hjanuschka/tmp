@@ -5,10 +5,13 @@ var prediction = require('@google-cloud/prediction')({
 });
 
 var model = prediction.model('kmm-sentiment3');
+model.analyze(function(e,d) {
+  console.error(d.data.outputFeature);
+})
 
 var query_things = 'scheisse arschloch das is grün'.split(/\s/gi)
 model.query(query_things, function(e, d) {
-  console.error(e, d);
+  
 })
 
 
