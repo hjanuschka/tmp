@@ -1,97 +1,209 @@
-
-var prediction = require('@google-cloud/prediction')({
-  projectId: 'WILLI-VISION',
-  keyFilename: '/Users/hja/Desktop/SPORTPORTAL/prediction/../FXF/FXF-REST/DEPLOYD/FiveXFive/conf/google-key.json'
-});
-
-
-//prediction.createModel('kmm-sentiment3', function(err, model, apiResponse) {
-//});
-
+var key = require('../FXF/FXF-REST/DEPLOYD/FiveXFive/conf/google-key.json');
 var fs = require("fs");
-var records = fs.readFileSync(process.argv[2]).toString().split("\n")
+var google = require('googleapis');
+var scopes = [
+    "https://www.googleapis.com/auth/prediction"
+]
+var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, scopes, null);
+var prediction = google.prediction('v1.6');
 
-var model = prediction.model('kmm-sentiment3');
-records.reduce(function(promise, item) {
-    return promise.then(function() {
-        console.error("TRAINING!")
-        return model.train(process.argv[3], item.split(/\s/gi))
-    });
-}, Promise.resolve());
-
-
-
-
-
-/*
-
-//prediction.createModel('kmm-sentiment2', function(err, model, apiResponse) {
-//});
-
-    var model = prediction.model('kmm-sentiment2');
-    var str = 'So ein Schwachsinn, die USA haben Rekordarbeitslosigkeit und das sogenannte Wirtschaftswachstum ist ein rein statistisches Wachstum. Das man nur so dumm sein kann und diese manipulierten Zahlen zu glauben, die ja auch nur knapp an der Rezession vorbei schrammen?'
-    var train_things = str.split(/\s/gi)
-    console.error("TRAIN:", train_things)
-    model.train('asdf2', train_things, function(e, d) {
-      console.error(e,d);
-      model.query("Schwachsinn", function(e, d) {
-        console.error(e,d);
-      })
+var SEARCH_QUERY = "dasasd dasdsa"
+var BRAIN = "KMMBRAIN"
+Promise.resolve()
+    .then(doAuth)
+    //.then(waitForTrainingFinished)
+    //.then(doAnalyze)
+    .then(deleteModel)
+    .then(createModel)
+    .then(waitForTrainingFinished)
+    .then(doTraining)
+    .then(function(result) {
+        console.log("Training done")
+    })
+    .then(doTrainingStatus)
+    .then(function(data) {
+      //console.error("Training Status: ", data.trainingStatus)
+      return Promise.resolve();
+    })
+    .then(waitForTrainingFinished)
+    //.then(doQuery)
+    .then(function(query_data) {
+      console.error(query_data);
+    })
+    .catch(function(e) {
+        console.error("ERROR", e);
     })
 
-/*
+function waitForTrainingFinished() {
+  return new Promise(function(resolve, reject) {
+    var interv = setInterval(function() {
+      prediction.trainedmodels.get({
+        auth: jwtClient,
+        project: "WILLI-VISION",
+        id: BRAIN
+      }, function(error, data) {
+        if(!data) {
+          resolve(null)
+          return;
+        }
+        console.error("WAITING for training to be finished " + data.trainingStatus)
+        if(data.trainingStatus == "DONE") {
+          clearInterval(interv);
+          resolve("DONE")
+        }
+      })
+    }, 5000)
+    
+  })
+}
+function deleteModel() {
+  return new Promise(function(resolve, reject) {
+    prediction.trainedmodels.delete({
+      auth: jwtClient,
+      project: "WILLI-VISION",
+      id: BRAIN
+      
+    }, function(error, data) {
+      console.error(error, data)
+      if(error) {
+        reject(error);
+        return;
+      }
+      console.log(data);
+      resolve(data);
+    })
+  })
+}
+function createModel() {
+  return new Promise(function(resolve, reject) {
+    prediction.trainedmodels.insert({
+      auth: jwtClient,
+      project: "WILLI-VISION",
+    
+      resource: {
+          id: BRAIN,
+          modelType: "CLASSIFICATION"
+      }
+      
+    }, function(error, data) {
+      if(error) {
+        reject(error);
+        return;
+      }
+      console.log(data);
+      resolve(data);
+    })
+  })
+}
+function doTrainingStatus() {
+  return new Promise(function(resolve, reject) {
+    prediction.trainedmodels.get({
+      auth: jwtClient,
+      project: "WILLI-VISION",
+      id: BRAIN
+    }, function(error, data) {
+      if(error) {
+        reject(error);
+        return;
+      }
+      resolve(data);
+    })
+  })
+}
+function doQuery() {
+  return new Promise(function(resolve, reject) {
+    prediction.trainedmodels.predict({
+      auth: jwtClient,
+      project: "WILLI-VISION",
+      id: BRAIN,
+      resource: {
+        input: {
+          csvInstance: [SEARCH_QUERY]
+        }
+      }
+    }, function(error, data) {
+      if(error) {
+        reject(error);
+        return;
+      }
+      
+      resolve(data);
+      
+    })
+  })
+}
 
-    model.train('bad', 'Sie Dummkopf, damals bei den "Rechten"? Hitler war ein Linker.')
-         .then(function() {
-           return model.train('bad', 'Wenn es ein Lüftlein gibt an Wahlen, dann kommt ein Pilz uns zu Quälen !!Was kostet uns der U Ausschuß,wem nützt er und was ändert er ?? Ist da schon mal einer von den Politikern ordentlich in den Knast gegangen. Nicht einmal der Strasser, denn der hat eine Fußfessel ausgefasst und konnte neben seien Frau sitzen !! Ja was haben eben Pilze so an sich ,sie sind Schmarotzer !! Gemeindewohnung, Nationalrat und nichts bewirkt für monatliche 8500 €uro !!');
-         })
-         .then(function() {
-           return model.train('bad', 'So ein Schwachsinn, die USA haben Rekordarbeitslosigkeit und das sogenannte Wirtschaftswachstum ist ein rein statistisches Wachstum. Das man nur so dumm sein kann und diese manipulierten Zahlen zu glauben, die ja auch nur knapp an der Rezession vorbei schrammen?');
-         })
-         .then(function(r,a) {
-           console.error("ZZZZ", r);
-           return model.query("Hitler")
-         }).then(function(result) {
-           console.error("XXXX", result);
-         })
-         .catch(function(e) {
-           console.error("AAAA", e);
-         });
+function trainText(item) {
+    return new Promise(function(resolve, reject) {
+      
+      if(item.length != 2) {
+        resolve();
+        return;
+      }
+        console.error("TRAIN: " + item[0])
+        prediction.trainedmodels.update({
+            project: "WILLI-VISION",
+            auth: jwtClient,
+            id: BRAIN,
+            resource: {
+                    csvInstance: ["" + item[1] + ""],
+                    output: item[0]
+            }
 
-*/
+        }, function(error, data) {
+            if (error) {
+                reject(error);
+                return;
+            }
+            resolve(data);
+        })
+
+    })
+}
+
+function doTraining() {
+
+    var data = fs.readFileSync("/tmp/sentences").toString().split("\n")
+
+    var p = Promise.resolve();
+    return data.reduce(function(pacc, item) {
+        return pacc = pacc.then(function() {
+            return trainText(item.split("|;"))
+        });
+    }, p).then(function() {
+
+    });
 
 
-/*
-// Get all of the trained models in your project.
-prediction.getModels(function(err, models) {
-  if (!err) {
-    // `models` is an array of Model objects.
-    console.error(err);
-  }
-  console.error(models);
-});
 
-// Reference an existing trained model.
-var model = prediction.model('my-existing-model');
 
-// Train a model.
-model.train('english', 'Hello from your friends at Google!', function(err) {});
+}
 
-// Query a model.
-model.query('Hello', function(err, results) {
-  if (!err) {
-    // results.winner == 'english'
-    // results.scores == [
-    //   {
-    //     label: 'english',
-    //     score: 1
-    //   },
-    //   {
-    //     label: 'spanish',
-    //     score: 0
-    //   }
-    // ]
-  }
-});
+function doAuth() {
+    return new Promise(function(resolve, reject) {
+        jwtClient.authorize(function(err, data) {
+            if (err) {
+                reject();
+                return;
+            }
+            resolve(data);
+        });
+    })
+}
 
-*/
+function doAnalyze() {
+    return new Promise(function(resolve, reject) {
+        prediction.trainedmodels.analyze({
+            auth: jwtClient,
+            project: "WILLI-VISION",
+            id: BRAIN
+        }, function(error, data) {
+            if (error) {
+                reject();
+                return;
+            }
+            console.error(data.dataDescription.outputFeature.text);
+            resolve(data);
+        })
+    });
+}

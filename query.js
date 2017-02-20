@@ -1,23 +1,18 @@
 
 var prediction = require('@google-cloud/prediction')({
   projectId: 'WILLI-VISION',
-  keyFilename: '/Users/hja/Desktop/SPORTPORTAL/prediction/../FXF/FXF-REST/DEPLOYD/FiveXFive/conf/google-key.json'
+  keyFilename: '../FXF/FXF-REST/DEPLOYD/FiveXFive/conf/google-key.json'
 });
 
-var model = prediction.model('kmm-sentiment3');
-model.analyze(function(e,d) {
-  console.error(d.data.outputFeature);
-})
-
-var query_things = 'scheisse arschloch das is grün'.split(/\s/gi)
+var model = prediction.model('KMMBRAIN');
+var query_things = 'scheisse arschloch das is grün'
 model.query(query_things, function(e, d) {
+  console.error(e, d)
   
 })
 
 
-model.analyze(function(e,d) {
-  //console.error(e,d);
-})
+
 
 
 /*
