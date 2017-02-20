@@ -5,11 +5,26 @@ var prediction = require('@google-cloud/prediction')({
 });
 
 var model = prediction.model('post-classifier');
-var query_things = 'scheisse arschloch das is grün'
-model.query(query_things, function(e, d) {
-  console.error(e, d)
-  
+var query_things = 'warum nicht "Platz der gescheiterten Politiker" ????'
+var query_things = 'Wir werde von einem totalitÃ¤ren Regime regiert! Die Meinung des Volkes ist denen vollkommen egal! Hoffentlich nimmt dieses Grauen bei der nÃ¤chsten Wahl ein Ende sonst habe ich wirklich Angst um die Zukunft meiner Kinder und um ganz Ãsterreich !'
+var query_things = 'Sicher haben da auch die roten ihre dreckigen Finger drinnen!'
+
+
+var readline = require('readline');
+var rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+  terminal: false
+});
+
+rl.on('line', function(line){
+  model.query(line, function(e, d) {
+    console.error(e, d)
+    
+  })
 })
+
+
 
 
 

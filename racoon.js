@@ -4,7 +4,13 @@ raccoon.config.nearestNeighbors = 5;  // number of neighbors you want to compare
 raccoon.config.className = 'articles';  // prefix for your items (used for redis)
 raccoon.config.numOfRecsStore = 30;  // number of recommendations to store per user
 
-Promise.resolve().then(recommendDemo).catch(function(e) { console.error(e) });
+var proms = []
+for(var x=0; x<10000; x++) {
+  proms.push(function() {
+    return raccoon.liked("Person"+x, 'article3');
+  })
+}
+Promise.all(proms).then(recommendDemo).catch(function(e) { console.error(e) });
 
 function recommendDemo() {
   return raccoon.liked('heli', 'article1')
@@ -12,11 +18,15 @@ function recommendDemo() {
           return raccoon.liked('heli', 'article2');
       })
       .then(function() {
-          return raccoon.liked('heli', 'article3');
+          return raccoon.liked('heli', 'article5');
       })
       .then(function() {
           return raccoon.liked('harald', 'article1');
-      }).then(function() {
+      })
+      .then(function() {
+            return raccoon.liked('harald', 'article2');
+      })
+      .then(function() {
           return raccoon.recommendFor('harald', 10);
       }).then(function(recs) {
           console.log('recommendation: ', recs);
