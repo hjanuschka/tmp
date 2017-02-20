@@ -4,7 +4,7 @@ var prediction = require('@google-cloud/prediction')({
   keyFilename: '../FXF/FXF-REST/DEPLOYD/FiveXFive/conf/google-key.json'
 });
 
-var model = prediction.model('KMMBRAIN');
+var model = prediction.model('post-classifier');
 var query_things = 'scheisse arschloch das is grün'
 model.query(query_things, function(e, d) {
   console.error(e, d)

@@ -8,13 +8,13 @@ var jwtClient = new google.auth.JWT(key.client_email, null, key.private_key, sco
 var prediction = google.prediction('v1.6');
 
 var SEARCH_QUERY = "dasasd dasdsa"
-var BRAIN = "KMMBRAIN"
+var BRAIN = "post-classifier"
 Promise.resolve()
     .then(doAuth)
     //.then(waitForTrainingFinished)
     //.then(doAnalyze)
-    .then(deleteModel)
-    .then(createModel)
+    //.then(deleteModel)
+    //.then(createModel)
     .then(waitForTrainingFinished)
     .then(doTraining)
     .then(function(result) {
